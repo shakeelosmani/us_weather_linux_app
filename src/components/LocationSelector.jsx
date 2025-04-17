@@ -4,10 +4,24 @@ export default function LocationSelector({ onSelect }) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
 
-  // Browser geolocation
+  // Browser geolocation with reverse lookup
   const askGeo = () =>
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => onSelect({ lat: coords.latitude, lon: coords.longitude }),
+      async ({ coords }) => {
+        const lat = coords.latitude;
+        const lon = coords.longitude;
+        let name = '';
+        try {
+          const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`;
+          const res = await fetch(url);
+          const data = await res.json();
+          const addr = data.address || {};
+          name = addr.city || addr.town || addr.village || data.display_name;
+        } catch (err) {
+          console.error('Reverse geocode error:', err);
+        }
+        onSelect({ lat, lon, name });
+      },
       () => console.warn('Geolocation denied'),
       { enableHighAccuracy: true }
     );
@@ -63,7 +77,7 @@ export default function LocationSelector({ onSelect }) {
                 key={idx}
                 className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                 onClick={() => {
-                  onSelect({ lat: s.lat, lon: s.lon });
+                  onSelect({ lat: s.lat, lon: s.lon, name: s.name });
                   setQuery(s.name);
                   setSuggestions([]);
                 }}
