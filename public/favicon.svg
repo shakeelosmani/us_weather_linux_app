@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#ffffff" />
+
+  <!-- Gradient text -->
+  <text
+    x="32" y="36"
+    text-anchor="middle"
+    font-family="Arial, sans-serif"
+    font-size="24"
+    font-weight="bold"
+    fill="url(#grad)"
+  >
+    USW&A
+  </text>
+</svg>

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+// src/components/LocationSelector.jsx
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function LocationSelector({ onSelect }) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const debounceRef = useRef(null);
 
   // Browser geolocation with reverse lookup
   const askGeo = () =>
@@ -20,20 +22,33 @@ export default function LocationSelector({ onSelect }) {
         } catch (err) {
           console.error('Reverse geocode error:', err);
         }
+        // clear any manual input
+        setQuery('');
+        setSuggestions([]);
         onSelect({ lat, lon, name });
       },
       () => console.warn('Geolocation denied'),
       { enableHighAccuracy: true }
     );
 
-  // Nominatim autocomplete
-  const onChange = async (e) => {
-    const q = e.target.value;
-    setQuery(q);
-    if (q.length > 2) {
+  // Debounced autocomplete
+  useEffect(() => {
+    if (query.length < 3) {
+      // clear when too short
+      setSuggestions([]);
+      return;
+    }
+
+    // clear any existing debounce timer
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    // set a new debounce timer
+    debounceRef.current = setTimeout(async () => {
       try {
         const url = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(
-          q
+          query
         )}&country=USA&limit=5&format=json`;
         const res = await fetch(url);
         const data = await res.json();
@@ -48,10 +63,15 @@ export default function LocationSelector({ onSelect }) {
         console.error('Autocomplete error:', err);
         setSuggestions([]);
       }
-    } else {
-      setSuggestions([]);
-    }
-  };
+    }, 300); // 300ms debounce
+
+    // cleanup on unmount or query change
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [query]);
 
   return (
     <div className="space-y-2">
@@ -66,9 +86,9 @@ export default function LocationSelector({ onSelect }) {
         <input
           type="text"
           value={query}
-          onChange={onChange}
+          onChange={(e) => setQuery(e.target.value)}
           placeholder="Enter U.S. city…"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
         />
         {suggestions.length > 0 && (
           <ul className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded mt-1 max-h-40 overflow-auto">
@@ -77,9 +97,9 @@ export default function LocationSelector({ onSelect }) {
                 key={idx}
                 className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                 onClick={() => {
-                  onSelect({ lat: s.lat, lon: s.lon, name: s.name });
                   setQuery(s.name);
                   setSuggestions([]);
+                  onSelect({ lat: s.lat, lon: s.lon, name: s.name });
                 }}
               >
                 {s.name}

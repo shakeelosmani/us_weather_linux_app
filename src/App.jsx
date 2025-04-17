@@ -57,12 +57,19 @@ export default function App() {
           <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-300">
             US Weather & Alerts
           </h1>
+          {/* °F / °C Toggle */}
           <button
             onClick={toggleUnit}
-            className="px-3 py-1 border rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            className={`
+              px-4 py-1 rounded-full font-semibold transition
+              ${unit === 'F'
+                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-purple-600 text-white hover:bg-purple-700'}
+            `}
           >
-            {unit === "F" ? "°F" : "°C"}
+            {unit === 'F' ? '°F' : '°C'}
           </button>
+
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
